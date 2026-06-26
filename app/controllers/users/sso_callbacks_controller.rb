@@ -50,7 +50,7 @@ class Users::SsoCallbacksController < ApplicationController
       return nil
     end
 
-    url = "#{sso_base_url}/api/auths/#{token}?backend_id=178246419580930726"
+    url = "#{sso_base_url}/api/auths/#{token}?backend_id=#{ENV['SSO_BACKEND_ID']}"
 
     begin
       uri = URI(url)

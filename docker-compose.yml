@@ -1,15 +1,18 @@
 services:
   zealot:
     build: .
+    env_file:
+      - .env
     environment:
-      - RAILS_ENV=production
-      - RAILS_SERVE_STATIC_FILES=true
-      - SECRET_KEY_BASE=zealot_development_secret_key_base_for_production_use_only
-      - ZEALOT_DATABASE_URL=postgresql://postgres:postgres@db:5432/zealot
-      - REDIS_URL=redis://redis:6379/0
-      - BIND_ON=0.0.0.0:3063
-      # SSO 配置 - 灵盾
-      - SSO_BASE_URL=https://api-unify.seerq.io
+      - RAILS_ENV=${RAILS_ENV}
+      - RAILS_SERVE_STATIC_FILES=${RAILS_SERVE_STATIC_FILES}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - ZEALOT_DATABASE_URL=${ZEALOT_DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - BIND_ON=${BIND_ON}
+      # SSO 配置
+      - SSO_BASE_URL=${SSO_BASE_URL}
+      - SSO_BACKEND_ID=${SSO_BACKEND_ID}
     volumes:
       - zealot_data:/app/data
     restart: unless-stopped
@@ -21,10 +24,12 @@ services:
 
   db:
     image: postgres:16-alpine
+    env_file:
+      - .env
     environment:
-      - POSTGRES_DB=zealot
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
