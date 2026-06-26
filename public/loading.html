@@ -1,0 +1,227 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Zealot is starting</title>
+  <style>
+    html {
+      height: 100%;
+      background: #3023ae;
+      background: -moz-linear-gradient(-45deg,  #3023ae 0%, #c86dd7 100%);
+      background: -webkit-gradient(linear, left top, right bottom, color-stop(0%,#3023ae), color-stop(100%,#c86dd7));
+      background: -webkit-linear-gradient(-45deg,  #3023ae 0%,#c86dd7 100%);
+      background: -o-linear-gradient(-45deg,  #3023ae 0%,#c86dd7 100%);
+      background: -ms-linear-gradient(-45deg,  #3023ae 0%,#c86dd7 100%);
+      background: linear-gradient(135deg,  #3023ae 0%,#c86dd7 100%);
+      background-attachment: fixed;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .message {
+      margin-top: 20px;
+      text-align: center;
+      max-width: 560px;
+      padding: 0 24px;
+    }
+    .hidden {
+      display: none;
+    }
+    .actions {
+      margin-top: 24px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 140px;
+      padding: 12px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+    .button:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 3px;
+    }
+  </style>
+  <script type="text/javascript">
+    const timeout = 5000;
+    const duration = 2000;
+    const maxFailures = 20;
+    let failureCount = 0;
+    let healthCheckTimer = null;
+    let healthCheckStopped = false;
+
+    function setLanguage() {
+      const userLang = navigator.language || navigator.userLanguage;
+      console.log("Browser language:", userLang);
+      
+      const locales = {
+        zh: {
+          title: "应用正在启动中...",
+          description: "系统正在检测应用状态，将在服务就绪后自动刷新",
+          errorTitle: "应用启动失败",
+          errorDescription: "后台服务长时间未响应，已停止自动检查。请确认 Zealot 服务是否正常启动后再重试。",
+          retry: "重新检查"
+        },
+        en: {
+          title: "Application is starting...",
+          description: "The system is checking application status and will automatically refresh when ready",
+          errorTitle: "Application failed to start",
+          errorDescription: "The backend service did not respond for an extended period. Automatic checks have stopped. Verify that the Zealot service is running, then try again.",
+          retry: "Retry"
+        }
+      };
+      
+      const isChinese = /^zh\b/.test(userLang);
+      return isChinese ? locales.zh : locales.en;
+    }
+
+    function renderLoadingState(locale) {
+      document.getElementById('spinner').classList.remove('hidden');
+      document.getElementById('title').textContent = locale.title;
+      document.getElementById('description').textContent = locale.description;
+      document.getElementById('retry').textContent = locale.retry;
+      document.getElementById('actions').classList.add('hidden');
+    }
+
+    function renderErrorState(locale) {
+      healthCheckStopped = true;
+      if (healthCheckTimer) {
+        clearTimeout(healthCheckTimer);
+      }
+
+      document.getElementById('spinner').classList.add('hidden');
+      document.getElementById('title').textContent = locale.errorTitle;
+      document.getElementById('description').textContent = locale.errorDescription;
+      document.getElementById('retry').textContent = locale.retry;
+      document.getElementById('actions').classList.remove('hidden');
+    }
+
+    function scheduleNextCheck() {
+      if (healthCheckStopped) {
+        return;
+      }
+
+      healthCheckTimer = window.setTimeout(checkHealth, duration);
+    }
+
+    async function checkHealth() {
+      if (healthCheckStopped) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/version', {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          },
+          signal: AbortSignal.timeout(timeout)
+        });
+
+        if (response.status === 200) {
+          window.location.reload();
+          return;
+        }
+
+        failureCount += 1;
+        console.log('Health check returned status:', response.status, 'failure count:', failureCount);
+      } catch (error) {
+        failureCount += 1;
+        console.log('Health check error:', error, 'failure count:', failureCount);
+      }
+
+      if (failureCount >= maxFailures) {
+        renderErrorState(window.currentLocale);
+        return;
+      }
+
+      scheduleNextCheck();
+    }
+
+    function retryHealthCheck() {
+      failureCount = 0;
+      healthCheckStopped = false;
+      renderLoadingState(window.currentLocale);
+      checkHealth();
+    }
+      
+    document.addEventListener('DOMContentLoaded', function() {
+      window.currentLocale = setLanguage();
+      renderLoadingState(window.currentLocale);
+      document.getElementById('retry').addEventListener('click', retryHealthCheck);
+      checkHealth();
+    });
+  </script>
+</head>
+<body>
+<div class="container">
+  <!-- By Sam Herbert (@sherb), for everyone. More @ http://goo.gl/7AJzbL -->
+  <svg id="spinner" width="120" height="120" viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" stroke="#fff">
+    <g fill="none" fill-rule="evenodd" transform="translate(1 1)" stroke-width="2">
+        <circle cx="22" cy="22" r="6" stroke-opacity="0">
+            <animate attributeName="r"
+                 begin="1.5s" dur="3s"
+                 values="6;22"
+                 calcMode="linear"
+                 repeatCount="indefinite" />
+            <animate attributeName="stroke-opacity"
+                 begin="1.5s" dur="3s"
+                 values="1;0" calcMode="linear"
+                 repeatCount="indefinite" />
+            <animate attributeName="stroke-width"
+                 begin="1.5s" dur="3s"
+                 values="2;0" calcMode="linear"
+                 repeatCount="indefinite" />
+        </circle>
+        <circle cx="22" cy="22" r="6" stroke-opacity="0">
+            <animate attributeName="r"
+                 begin="3s" dur="3s"
+                 values="6;22"
+                 calcMode="linear"
+                 repeatCount="indefinite" />
+            <animate attributeName="stroke-opacity"
+                 begin="3s" dur="3s"
+                 values="1;0" calcMode="linear"
+                 repeatCount="indefinite" />
+            <animate attributeName="stroke-width"
+                 begin="3s" dur="3s"
+                 values="2;0" calcMode="linear"
+                 repeatCount="indefinite" />
+        </circle>
+        <circle cx="22" cy="22" r="8">
+            <animate attributeName="r"
+                 begin="0s" dur="1.5s"
+                 values="6;1;2;3;4;5;6"
+                 calcMode="linear"
+                 repeatCount="indefinite" />
+        </circle>
+    </g>
+  </svg>
+  <div class="message">
+    <h2 id="title"></h2>
+    <p id="description"></p>
+    <div id="actions" class="actions hidden">
+      <button id="retry" class="button" type="button"></button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
