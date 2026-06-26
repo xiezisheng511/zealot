@@ -108,28 +108,4 @@ docker compose up -d
 4. **Session 超时**：可配置的无操作超时时间
 5. **移除赞助按钮**：导航栏已移除"支持 Zealot"按钮
 6. **环境变量配置**：敏感信息通过 `.env` 文件管理
-
-## 推送到 GitHub
-
-```bash
-git add -A
-git commit -m "描述"
-git remote set-url origin https://ghp_你的TOKEN@github.com/xiezisheng511/zealot.git
-git push -u origin main
-```
-
-## 目录结构
-
-```
-├── .env.example      # 环境变量模板
-├── .env              # 环境变量（不提交）
-├── docker-compose.yml
-├── Dockerfile
-├── config/
-│   └── initializers/
-│       └── devise.rb  # Session 超时配置
-└── app/
-    └── controllers/
-        └── users/
-            └── sso_callbacks_controller.rb  # SSO 回调处理
-```
+7. **登录页改造**：仅显示 SSO 授权提示
