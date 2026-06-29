@@ -5,7 +5,7 @@
 #
 # 使用方式:
 #   ./deploy.sh                      # 交互式
-#   ./deploy.sh --host 192.168.1.100 --user admin
+#   ./deploy.sh --host your-server.com --user admin
 #
 
 set -e
@@ -54,9 +54,9 @@ Zealot SSO 部署脚本
   -h, --help            显示帮助
 
 示例:
-  ./deploy.sh --host 192.168.1.100 --user admin
+  ./deploy.sh --host your-server.com --user ubuntu
   ./deploy.sh --host 192.168.1.100 --user admin --ssh-key ~/.ssh/id_rsa
-  ./deploy.sh --host example.com --user ubuntu --ssh-key ~/.ssh/id_rsa --skip-build
+  ./deploy.sh --host your-server.com --user ubuntu --ssh-key ~/.ssh/id_rsa --skip-build
 
 EOF
 }
