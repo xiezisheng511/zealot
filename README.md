@@ -44,7 +44,7 @@ docker compose down
 | `ZEALOT_DATABASE_URL` | 数据库连接 | `postgresql://postgres:password@db:5432/zealot` |
 | `REDIS_URL` | Redis 连接 | `redis://redis:6379/0` |
 | `BIND_ON` | 服务端口 | `0.0.0.0:3063` |
-| `SSO_BASE_URL` | SSO 接口地址 | `https://api-unify.example.com` |
+| `SSO_BASE_URL` | SSO 接口地址 | `https://your-sso-api.com` |
 | `SSO_BACKEND_ID` | SSO 后端 ID | `your_backend_id` |
 | `POSTGRES_PASSWORD` | 数据库密码 | `your_password` |
 | `SESSION_TIMEOUT` | Session 超时(分钟) | `180` |
