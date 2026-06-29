@@ -109,3 +109,67 @@ docker compose up -d
 5. **移除赞助按钮**：导航栏已移除"支持 Zealot"按钮
 6. **环境变量配置**：敏感信息通过 `.env` 文件管理
 7. **登录页改造**：仅显示 SSO 授权提示
+
+## NAS 部署
+
+### 部署脚本部署
+
+```bash
+# 构建并部署到 NAS
+./deploy.sh --nas-host 192.168.1.184 --nas-user momo
+
+# 跳过构建，仅更新配置并重启
+./deploy.sh --nas-host 192.168.1.184 --nas-user momo --skip-build
+```
+
+### 手动部署到 NAS
+
+如果使用 docker-compose 管理：
+
+```bash
+# 1. 构建镜像
+docker build -t zealot-zealot:latest .
+
+# 2. 导出并传输到 NAS
+docker save zealot-zealot:latest -o /tmp/zealot.tar
+scp /tmp/zealot.tar momo@192.168.1.184:/tmp/
+
+# 3. 在 NAS 上加载镜像
+docker load -i /tmp/zealot.tar
+
+# 4. 停止并删除旧容器
+docker stop zealot-zealot-1
+docker rm zealot-zealot-1
+
+# 5. 启动新容器（关键环境变量）
+docker run -d \
+  --name zealot-zealot-1 \
+  --restart unless-stopped \
+  --network zealot_default \
+  -p 3063:3061 \
+  -e BIND_ON=0.0.0.0:3063 \
+  -e ZEALOT_STANDARD_LOGIN_ENABLED=false \
+  -e SECRET_KEY_BASE=zealot_development_secret_key_base_for_production_use_only \
+  -e ZEALOT_DATABASE_URL=postgresql://postgres:postgres@db:5432/zealot \
+  zealot-zealot:latest
+```
+
+### 关键环境变量说明
+
+| 变量名 | 说明 | 必填 |
+|--------|------|------|
+| `BIND_ON` | Puma 监听端口，必须设为 `0.0.0.0:3063` | ✅ |
+| `ZEALOT_STANDARD_LOGIN_ENABLED` | 是否启用标准登录，设为 `false` 启用 SSO 模式 | ✅ |
+| `SECRET_KEY_BASE` | Rails 密钥 | ✅ |
+| `ZEALOT_DATABASE_URL` | 数据库连接地址 | ✅ |
+| `SSO_BASE_URL` | SSO 接口地址 | SSO 登录必填 |
+| `SSO_BACKEND_ID` | SSO 后端 ID | SSO 登录必填 |
+
+### 验证部署
+
+```bash
+# 检查容器状态
+curl http://192.168.1.184:3063/users/sign_in
+
+# 确认显示 "请打开后台管理系统授权登录" 即表示成功
+```

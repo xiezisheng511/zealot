@@ -41,12 +41,22 @@ class ApplicationController < ActionController::Base
   end
 
   DEVISE_PERMITTED_PARAMTERS = %i[
-    username email password password_confirmation remember_me 
+    username email password password_confirmation remember_me
     locale appearance timezone light_theme dark_theme
   ]
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit :sign_up, keys: DEVISE_PERMITTED_PARAMTERS
     devise_parameter_sanitizer.permit :account_update, keys: DEVISE_PERMITTED_PARAMTERS
     devise_parameter_sanitizer.permit :sign_in, keys: %i[ username email password ]
+  end
+
+  def after_sign_in_path_for(resource)
+    session[:created_at] = Time.current
+    super
+  end
+
+  def after_sign_out_path_for(resource)
+    session.delete(:created_at)
+    super
   end
 end

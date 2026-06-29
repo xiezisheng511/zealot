@@ -28,6 +28,7 @@ class Users::SsoCallbacksController < ApplicationController
 
     if user.persisted?
       sign_in user
+      session[:created_at] = Time.current
       redirect_to root_path, notice: 'Signed in successfully'
     else
       redirect_to new_user_session_path, alert: 'SSO user creation failed'

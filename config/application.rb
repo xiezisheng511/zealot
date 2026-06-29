@@ -2,7 +2,6 @@
 
 require_relative 'boot'
 
-require 'rails'
 # Pick the frameworks you want:
 require 'active_model/railtie'
 require 'active_job/railtie'
@@ -11,6 +10,10 @@ require 'active_record/railtie'
 require 'action_controller/railtie'
 require 'action_mailer/railtie'
 # require 'action_mailbox/engine'
+require 'action_view/railtie'
+require 'action_cable/engine'
+
+require_relative '../lib/session_expiry_middleware'
 # require 'action_text/engine'
 require 'action_view/railtie'
 require 'action_cable/engine'
@@ -65,6 +68,9 @@ module Zealot
     # Auto load path
     config.autoload_paths += Dir["#{config.root}/lib"]
     config.eager_load_paths += Dir["#{config.root}/lib"]
+
+    # Session expiry middleware
+    config.middleware.use SessionExpiryMiddleware
 
     ################################################################
     # Don't generate those files.
